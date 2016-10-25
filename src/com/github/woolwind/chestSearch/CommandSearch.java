@@ -19,12 +19,9 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.material.MaterialData;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.Bukkit;
 import org.inventivetalent.particle.ParticleEffect;
 
-import us.talabrek.ultimateskyblock.api.IslandInfo;
-import us.talabrek.ultimateskyblock.api.uSkyBlockAPI;
 
 public class CommandSearch implements CommandExecutor{
     // This method is called, when somebody uses our command
@@ -49,7 +46,6 @@ public class CommandSearch implements CommandExecutor{
 	            
 	            Integer searchRadius = plugin.getConfig().getInt("Limits.SearchRadius");
 	            Integer searchHeight = plugin.getConfig().getInt("Limits.SearchHeight");
-	            ArrayList<String> allowedWorlds = (ArrayList<String>) plugin.getConfig().getStringList("Limits.AllowedWorlds");
 	            
 	            Runnable runnable = new Runnable(){
 
@@ -61,24 +57,13 @@ public class CommandSearch implements CommandExecutor{
 						ArrayList<Location> locations = new ArrayList<Location>();
 						HashMap<Location,Location> sparklerLocations = new HashMap<Location,Location>();
 						Location center = player.getLocation();
-						World world = center.getWorld();
-			            if (allowedWorlds.contains("*") == false && allowedWorlds.contains(world.getName()) == false){
-			            	sender.sendMessage("not allowed in this world");
-			            	return;
-			            }
+						
+						Validator validator = new Validator(plugin);
+						
+						if ( validator.okToSearch(player) == false){
+							return;
+						}						
 
-			            if (plugin.getConfig().getBoolean("APISupport.uSkyblock") == true){
-			            	Plugin plugin = Bukkit.getPluginManager().getPlugin("uSkyBlock");
-			            	if (plugin instanceof uSkyBlockAPI && plugin.isEnabled()) {
-			            		uSkyBlockAPI usb = (uSkyBlockAPI) plugin;
-			            		IslandInfo ii = usb.getIslandInfo(player.getLocation());	
-			            		String pname = player.getName();
-			            		if (ii == null || ii.getLeader() != pname || ii.getMembers().contains(pname) == false){
-			            			sender.sendMessage ("You must be on your island to search chests");
-			            			return;
-			            		}
-			            	}
-			            }
 						int startx = (int) center.getX() - searchRadius;
 						int starty = (int) center.getY();
 						int startz = (int) center.getZ() - searchRadius;
@@ -87,23 +72,7 @@ public class CommandSearch implements CommandExecutor{
 						int endz = startz + (searchRadius * 2);
 						int endy = starty + searchHeight;
 						
-			            if (plugin.getConfig().getBoolean("APISupport.GriefPrevention") == true){
-			            	Plugin plugin = Bukkit.getPluginManager().getPlugin("GriefPrevention");
-			            	if (plugin instanceof GriefPrevention && plugin.isEnabled()) {
-			            	
-			            		Claim claim = GriefPrevention.instance.dataStore.getClaimAt(center, false, null);
-			            		if (claim == null){
-			            			sender.sendMessage("you can't search the wilderness");
-			            			return;
-			            		}
-			            		if (claim.allowAccess(player)!= null){
-			            			sender.sendMessage("You can only search chests in claims you can access");
-			            			return;
-			            		}
-			            		Location corner1 =  new Location(world, startx, starty, startz);
-			            		Location corner2 =  new Location(world, endx, endy, endz);
-			            	}
-			            }
+
 			            String[]parts = args[0].split(":");
 			            String SearchItemName = parts[0];
 			           
@@ -121,7 +90,7 @@ public class CommandSearch implements CommandExecutor{
 							//plugin.getLogger().info("searching at y = " + String.valueOf(y));
 							for (int x = startx; x <= endx; x++){
 								for (int z = startz; z <= endz; z++){
-									Block block = world.getBlockAt(x, y, z);
+									Block block = player.getWorld().getBlockAt(x, y, z);
 									if ((block.getType() == Material.CHEST) || (block.getType() == Material.TRAPPED_CHEST)){
 										Chest chest = (Chest) block.getState();
 										Inventory inv = chest.getBlockInventory();
@@ -153,13 +122,7 @@ public class CommandSearch implements CommandExecutor{
 							sender.sendMessage ("X " + String.valueOf(loc.getX()) + " Y " + 
 							String.valueOf(loc.getY()) +  " Z " + String.valueOf(loc.getZ()));
 							if (plugin.getConfig().getBoolean("APISupport.ParticleEffects") == true){
-								
-	//							plugin.getLogger().info("chest at X " + String.valueOf(loc.getX()) + " Y " + 
-	//									String.valueOf(loc.getY()) +  " Z " + String.valueOf(loc.getZ()));
 								Location sparklerLocation = sparklerLocations.get(loc);
-								
-	//							plugin.getLogger().info("sparkle at X " + String.valueOf(sparklerLocation.getX()) + " Y " + 
-	//									String.valueOf(sparklerLocation.getY()) +  " Z " + String.valueOf(sparklerLocation.getZ()));
 								ParticleEffect.FLAME.send(Bukkit.getOnlinePlayers(), sparklerLocation, 0, 0, 0, 0, 3);
 							}
 						}
