@@ -1,0 +1,17 @@
+name: ChestSearch
+main: com.github.woolwind.chestSearch.ChestSearch
+version: 1.0
+author: woolwind
+
+commands:
+  search:
+    description: search all chests in radius for item
+    usage: /search item
+  chestsearchreload:
+    description: reload configuration from file
+    usage: /chestsearchreload
+permissions:
+  chestsearch.admin:
+    description: Reload the config
+    default: op
+
