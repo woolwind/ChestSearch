@@ -2,14 +2,11 @@ package com.github.woolwind.chestSearch;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-
-import me.ryanhamshire.GriefPrevention.Claim;
-import me.ryanhamshire.GriefPrevention.GriefPrevention;
+import java.util.List;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Chest;
@@ -18,6 +15,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.material.MaterialData;
 import org.bukkit.Bukkit;
 import org.inventivetalent.particle.ParticleEffect;
@@ -35,12 +33,10 @@ public class CommandSearch implements CommandExecutor{
 			String[] args) {
 
 		 if (sender instanceof Player) { 
-			 	if (args.length != 1){
+			 	if (args.length < 1){
 			 		return false;
 			 	}
 	            Player player = (Player) sender;
-	            String[]parts = args[0].split(":");
-	            String SearchItemName = parts[0];
 	           
 	            //convert SearchItemName into proper enum
 	            
@@ -72,15 +68,31 @@ public class CommandSearch implements CommandExecutor{
 						int endz = startz + (searchRadius * 2);
 						int endy = starty + searchHeight;
 						
-
 			            String[]parts = args[0].split(":");
 			            String SearchItemName = parts[0];
+				        String lore = null;	
+				        String name = null;
 			           
 			            Material searchItem = Material.getMaterial(SearchItemName.toUpperCase());
 			            Byte SearchSubType = 0;
 				        if (parts.length > 1 ){
 				            	SearchSubType =  Byte.valueOf(parts[1]); 
 				        }
+				        for (int i = 1; i< args.length; i++){
+				        	String arg = args[i];
+				        	if (arg.startsWith("lore=")){
+				        		String[]t = arg.split("=");
+				        		lore = t[1];
+				        		lore = lore.replace("\"","");
+				        	}
+				        	if (arg.startsWith("namee=")){
+				        		String[]t = arg.split("=");
+				        		name = t[1];
+				        		name = name.replace("\"","");
+				        	}
+				        }
+				        
+				        
 				        
 						if (searchItem == null){
 							sender.sendMessage ("no such material: " + SearchItemName);
@@ -96,16 +108,19 @@ public class CommandSearch implements CommandExecutor{
 										Inventory inv = chest.getBlockInventory();
 										HashMap<Integer, ? extends ItemStack> map = inv.all(searchItem);
 										if (map.size() > 0){
-											if (SearchSubType > 0){
-												for ( ItemStack val :  map.values() ) {
-													if ( val.getDurability() == SearchSubType ){
+											for ( ItemStack val :  map.values() ) {
+												//plugin.getLogger().info("subtype " + String.valueOf(SearchSubType) + 
+												//" lore [" + lore + "]");
+												if ( (SearchSubType ==  val.getDurability())){
+													ItemMeta im = val.getItemMeta();
+													List<String> lores = im.getLore();
+													
+													//player.sendMessage("item lores: " +  lores);
+													if (lore == null || (lores != null &&  lores.contains(lore))){													
 														locations.add(block.getLocation());
 														sparklerLocations.put(block.getLocation(), getChestFront(block));
-													}
+													}		
 												}
-											}else{
-												locations.add(block.getLocation());
-												sparklerLocations.put(block.getLocation(), getChestFront(block));
 											}
 										}
 									}
