@@ -1,6 +1,6 @@
 name: ChestSearch
 main: com.github.woolwind.chestSearch.ChestSearch
-version: 1.1
+version: 1.2
 author: woolwind
 
 commands:
