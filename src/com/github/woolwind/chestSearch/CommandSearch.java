@@ -2,7 +2,6 @@ package com.github.woolwind.chestSearch;
 
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -24,22 +23,20 @@ public class CommandSearch implements CommandExecutor{
 		this.plugin = plugin;
 	}
 	@Override
-	public boolean onCommand(CommandSender sender, Command cmd, String label,
-			String[] args) {
+	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 
 		 if (sender instanceof Player) { 
 			 	if (args.length < 1){
 			 		return false;
 			 	}
-	            player = (Player) sender;
-	           
+			 	
+	            player = (Player) sender;           
 	            //convert SearchItemName into proper enum
 	            
 	            String[]parts = args[0].split(":");
 	            searchItemName = parts[0];
 	            String lore = null;	
-	            String name = null;
-	           	          
+	            String name = null;	           	          
 	            Byte SearchSubType = 0;
 	            if (parts.length > 1 ){
 	                	SearchSubType =  Byte.valueOf(parts[1]); 
@@ -56,8 +53,7 @@ public class CommandSearch implements CommandExecutor{
 	            		name = t[1];
 	            		name = name.replace("\"","");
 	            	}
-	            }
-	                    	            
+	            }	                    	            
 	            SearchJob searchjob = new SearchJob(plugin,this);
 	            searchjob.setPlayer(player);
 	            Material searchItem = Material.getMaterial(searchItemName.toUpperCase());
@@ -76,11 +72,15 @@ public class CommandSearch implements CommandExecutor{
 	                Bukkit.getScheduler().runTask(plugin, searchjob);
 	            }
 		 }
-		 sender.sendMessage("You must be a player!");
-		 return false;
+		 else{
+			 sender.sendMessage("You must be a player!");
+			 return false;
+		 }
+		return true;
 	}
 	
-	public void searchJobDidComplete(ArrayList<Location> locations, HashMap<Location,Location> sparklerLocations){
+	public void searchJobDidComplete(SearchResults results){
+		ArrayList<Location> locations = results.getLocations();
 		if (locations.size() == 0){
 			player.sendMessage("No " + searchItemName + " found in nearby chests");
 			return;
@@ -91,7 +91,7 @@ public class CommandSearch implements CommandExecutor{
 			player.sendMessage ("X " + String.valueOf(loc.getX()) + " Y " + 
 			String.valueOf(loc.getY()) +  " Z " + String.valueOf(loc.getZ()));
 			if (plugin.getConfig().getBoolean("APISupport.ParticleEffects") == true){
-				Location sparklerLocation = sparklerLocations.get(loc);
+				Location sparklerLocation = results.getSparklerAt(loc);
 				ParticleEffect.FLAME.send(Bukkit.getOnlinePlayers(), sparklerLocation, 0, 0, 0, 0, 3);
 			}
 		}
