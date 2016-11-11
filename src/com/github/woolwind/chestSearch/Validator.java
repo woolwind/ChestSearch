@@ -94,47 +94,30 @@ public class Validator {
         	
         		allX = Range.closed((int)min.getX(),(int)max.getX());
         		allY = Range.closed((int)min.getY(),(int)max.getY());
-        		allZ = Range.closed((int)min.getZ(),(int)max.getZ());
-        		
+        		allZ = Range.closed((int)min.getZ(),(int)max.getZ()); 
         	}
-        }
- 
-        		     		
+        }  // end skyblock
+    		     		
         if (plugin.getConfig().getBoolean("APISupport.GriefPrevention") == true){
         	Plugin plugin = Bukkit.getPluginManager().getPlugin("GriefPrevention");
-        	if (plugin instanceof GriefPrevention && plugin.isEnabled()) {
-        	
+        	if (plugin instanceof GriefPrevention && plugin.isEnabled()) {      	
         		Claim claim = GriefPrevention.instance.dataStore.getClaimAt(player.getLocation(), false, null);
         		if (claim == null){
         			player.sendMessage("you can't search the wilderness");
         			return false;
         		}
-        		if (claim.allowAccess(player)!= null){
+        		if (claim.allowContainers(player)!= null){
         			player.sendMessage("You can only search chests in claims you can access");
         			return false;
         		}
-         	}
+        		Location corner1 = claim.getLesserBoundaryCorner();
+        		Location corner2 = claim.getGreaterBoundaryCorner();
+        		allX = Range.closed((int)corner1.getX(), (int)corner2.getX());
+        		allY = Range.closed((int)corner1.getY(), 254);
+        		allZ = Range.closed((int)corner1.getZ(), (int)corner2.getZ());
+        	}
         }
 		return true;
 	}
-		
-	public SearchResults validateResults(SearchResults results){
-		ArrayList<Location> locations = results.getLocations();
-		HashMap<Location,Location> sparklerLocations = results.getSparklerLocations();	
-		//GriefPrevention API here, check all found chests are inside claim
-		//Factions - check all found chests are within the fac lands
-		if (plugin.getConfig().getBoolean("APISupport.GriefPrevention") == true){
-			Plugin plugin = Bukkit.getPluginManager().getPlugin("GriefPrevention");
-			if (plugin instanceof GriefPrevention && plugin.isEnabled()) {
-				for (Location loc : locations){
-					Claim claim = GriefPrevention.instance.dataStore.getClaimAt(loc, false, null);
-					if (claim == null || claim.allowAccess(player) == null){
-						locations.remove(loc);
-					}
-				}
-			}
-		}
-		SearchResults  validatedResults = new SearchResults(locations,sparklerLocations);
-		return validatedResults;
-		}
 }
+	

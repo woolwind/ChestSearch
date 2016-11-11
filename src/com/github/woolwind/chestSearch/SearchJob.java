@@ -104,7 +104,7 @@ public class SearchJob implements Runnable{
 			}
 		}
 		SearchResults results = new SearchResults (locations, sparklerLocations);
-		results = validator.validateResults(results);
+		//results = validator.validateResults(results);
 		caller.searchJobDidComplete(results);
 	}
 
